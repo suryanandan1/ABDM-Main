@@ -13,7 +13,9 @@ with middle:
     with st.form("login"):
         username = st.text_input("Username or ABHA address", key="login_username")
         password = st.text_input("Password", type="password", key="login_password")
-        otp = st.text_input("6-digit code from your authenticator app", key="login_otp", max_chars=6) if needs_code else None
+        # Fixed slot for the code box, so showing it does not move the submit button out of its place in the form
+        otp_slot = st.container()
+        otp = otp_slot.text_input("6-digit code from your authenticator app", key="login_otp", max_chars=6) if needs_code else None
         submitted = st.form_submit_button("Sign in", type="primary", icon=":material/login:", width="stretch")
 
     if submitted:

@@ -192,6 +192,12 @@ with right:
         if doc.get("approved_by_name"):
             st.caption(f"Approved by {doc['approved_by_name']} on {fmt_datetime(doc['approved_at'])}")
 
+    if doc.get("text") and (doc["content_type"] == "application/pdf" or doc["content_type"].startswith("image/")):
+        with st.expander("Text read from the document (OCR)", icon=":material/document_scanner:",
+                         expanded=False):
+            st.caption("The full text OCR read. The fields below were filled from it; check them against this text.")
+            st.code(doc["text"], language=None, wrap_lines=True)
+
     if record:
         focus = FOCUS.get(doc["document_type"], ["summary"])
         new_record = dict(record)

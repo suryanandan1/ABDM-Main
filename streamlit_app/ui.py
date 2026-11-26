@@ -226,6 +226,9 @@ def patient_picker(key: str, label: str = "Find patient") -> dict | None:
 def pager(key: str, total: int, page_size: int) -> int:
     """Page number selector for paginated lists; returns the 1-based page."""
     pages = max(1, -(-total // page_size))
+    if st.session_state.get(key, 1) > pages:  # filter/search shrank the list: the page was fetched past the end
+        st.session_state.pop(key)
+        st.rerun()
     if pages == 1:
         return 1
     return st.number_input(f"Page (of {pages})", min_value=1, max_value=pages, value=1, step=1, key=key)

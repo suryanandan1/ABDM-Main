@@ -214,6 +214,13 @@ Rules:
 
 
 def content_blocks(data: bytes, content_type: str, filename: str) -> list[dict]:
+    text = read_text(data, content_type)
+    return [{"type": "text", "text": f"<document>\n{text}\n</document>"},
+            {"type": "text", "text": f"Extract the clinical information from this document (file name: {filename})."}]
+
+
+def read_text(data: bytes, content_type: str) -> str:
+    """Plain text of the document: OCR for PDFs and images, direct reading for DOCX and TXT."""
     if content_type == "application/pdf" or content_type in IMAGE_TYPES:
         try:
             text = ai.ocr(data, content_type)
@@ -223,8 +230,7 @@ def content_blocks(data: bytes, content_type: str, filename: str) -> list[dict]:
         text = document_text(data, content_type)
     if not text:
         raise ExtractionError("The document contains no readable text")
-    return [{"type": "text", "text": f"<document>\n{text}\n</document>"},
-            {"type": "text", "text": f"Extract the clinical information from this document (file name: {filename})."}]
+    return text
 
 
 def call_model(blocks: list[dict]) -> Extraction[AIField]:

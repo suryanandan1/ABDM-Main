@@ -26,6 +26,11 @@ class Settings(BaseSettings):
     mistral_api_key: str | None = None
     ai_model: str = "mistral-large-latest"
     ai_ocr_model: str = "mistral-ocr-latest"
+    # OCR.space (https://ocr.space/ocrapi). When the key is set it does the OCR instead of Mistral.
+    # Free key: 1 MB per file, 3 PDF pages. PRO keys come with their own endpoint URL.
+    ocr_space_api_key: str | None = None
+    ocr_space_url: str = "https://api.ocr.space/parse/image"
+    ocr_space_engine: int = 2  # 1, 2 or 3 (3 = best for handwriting/tables, separate quota)
     upload_dir: Path = BACKEND_DIR / "uploads"
     max_upload_mb: int = 20
     fhir_validator_jar: Path = BACKEND_DIR / "tools" / "validator_cli.jar"

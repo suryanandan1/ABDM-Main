@@ -8,10 +8,11 @@ from fastapi.responses import FileResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app import ocr_parser
 from app.config import settings
 from app.database import SessionLocal, get_db
-from app.extraction import (DOCX_TYPE, ExtractionError, ReviewedRecord, blank_record, document_text, extract,
-                            iter_fields, refresh_status, value)
+from app.extraction import (DOCX_TYPE, AIField, Extraction, ExtractionError, ReviewedRecord, blank_record, document_text,
+                            extract, iter_fields, read_text, refresh_status, to_reviewed, value)
 from app.models import ClinicalDocument, Doctor, FhirRecord, Patient, User
 from app.routers.fhir import store_record
 from app.schemas import DocumentOut, DocumentSummary, DocumentUpdate, Page, ReasonRequest
@@ -33,10 +34,17 @@ def run_extraction(document_id: int, user_id: int) -> None:
     with SessionLocal() as db:
         doc = db.get(ClinicalDocument, document_id)
         try:
-            record = extract((settings.upload_dir / doc.storage_name).read_bytes(), doc.content_type, doc.file_name)
+            data = (settings.upload_dir / doc.storage_name).read_bytes()
+            if not settings.mistral_api_key:
+                # No AI model: split the OCR text into fields with rules; staff review every value as usual
+                doc.text = read_text(data, doc.content_type)
+                record = to_reviewed(Extraction[AIField].model_validate(ocr_parser.parse(doc.text)))
+                doc.ai_model = "OCR.space + rules" if settings.ocr_space_api_key else "Rules"
+            else:
+                record = extract(data, doc.content_type, doc.file_name)
+                doc.ai_model = settings.ai_model
             doc.ai_output = doc.data = record.model_dump(mode="json")
             doc.document_type, doc.extraction_status, doc.extraction_error = record.document_type, "completed", None
-            doc.ai_model = settings.ai_model
         except Exception as exc:
             if not isinstance(exc, ExtractionError):
                 log.exception("Unexpected extraction failure for document %s", document_id)

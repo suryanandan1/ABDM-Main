@@ -1,16 +1,31 @@
-# backend
-backend/.venv/
-backend/.env
-backend/*.db
+# Secrets (keep the .env.example files)
+.env
+.env.*
+!.env.example
+
+# Python
 __pycache__/
-# database (patient data: never committed; the empty folder is kept)
-database/*
-!database/.gitkeep
+*.py[cod]
+.venv/
+venv/
 .pytest_cache/
-# frontend
-frontend/node_modules/
+
+# Node / frontend build
+node_modules/
 frontend/dist/
-frontend/.env
-frontend/*.tsbuildinfo
-backend/tools/
+*.tsbuildinfo
+
+# Patient data: database files and uploaded documents
+database/*.db
+database/*.db-*
 backend/uploads/
+
+# HL7 validator + JDK (downloaded by backend/scripts/setup_validator.ps1)
+backend/tools/
+
+# Editor / OS / local Claude settings
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+.claude/settings.local.json

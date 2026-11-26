@@ -1,5 +1,10 @@
 import streamlit as st
 
+if tuple(int(x) for x in st.__version__.split(".")[:2]) < (1, 57):
+    st.error(f"This app needs Streamlit 1.57 or newer, but it was started with {st.__version__}. "
+             "Start it with the project's venv: `.\\.venv\\Scripts\\streamlit.exe run streamlit_app.py`")
+    st.stop()
+
 import api
 import ui
 from ui import can
