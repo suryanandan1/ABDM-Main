@@ -315,12 +315,17 @@ def build_bundle(c: ClinicalContent, p: Patient, h: Hospital, author: Doctor, do
     b = Builder(c, p, h, author, list(doctors))
     sections = [s for s in build_sections(b) if s]
     kind = COMPOSITION_TYPES.get(c.record_type)
+    # A doctor no other resource points to (e.g. a different doctor approved the record) must still be linked from the
+    # Composition, or the bundle fails validation ("isn't reachable ... from the Composition"): record them as attester.
+    used = repr(b.resources)
+    approvers = [{"mode": "professional", "time": iso(c.date), "party": ref(d, d["name"][0]["text"])}
+                 for d in b.doctors.values() if d is not b.author and f"urn:uuid:{d['id']}" not in used]
     composition = resource(
         "Composition", uid("composition", c.key), c.record_type, c.title, status="final", title=c.title,
         identifier={"system": local(h, "document"), "value": uid("composition", c.key)}, date=iso(c.date),
         type=coded(SNOMED, *kind) if kind else {"text": "Wellness Record"}, subject=b.subject()["subject"],
         encounter=ref(b.encounter) if b.encounter else None, author=[ref(b.author, b.author_name)],
-        attester=[{"mode": "legal", "time": iso(c.date), "party": ref(b.role, b.author_name)}],
+        attester=[{"mode": "legal", "time": iso(c.date), "party": ref(b.role, b.author_name)}, *approvers],
         custodian=ref(b.org, h.name), section=sections)
     now = iso(datetime.now(timezone.utc))
     entries = [composition, b.patient, *b.doctors.values(), b.role, b.org, *b.resources]
