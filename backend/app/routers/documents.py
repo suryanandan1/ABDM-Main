@@ -8,10 +8,10 @@ from fastapi.responses import FileResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app import ocr_parser
+from app.ocr import parser as ocr_parser
 from app.config import settings
 from app.database import SessionLocal, get_db
-from app.extraction import (DOCX_TYPE, AIField, Extraction, ExtractionError, ReviewedRecord, blank_record, document_text,
+from app.ocr.extraction import (DOCX_TYPE, AIField, Extraction, ExtractionError, ReviewedRecord, blank_record, document_text,
                             extract, iter_fields, read_text, refresh_status, to_reviewed, value)
 from app.models import ClinicalDocument, Doctor, FhirRecord, Patient, User
 from app.routers.fhir import store_record

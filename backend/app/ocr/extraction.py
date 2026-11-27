@@ -6,6 +6,7 @@ from typing import Generic, Iterator, Literal, TypeVar
 from pydantic import BaseModel, Field
 
 from app import ai
+from app.ocr import engine
 
 DocumentType = Literal["prescription", "lab_report", "opd_consultation", "discharge_summary",
                        "immunization", "wellness", "clinical_note", "other"]
@@ -145,6 +146,9 @@ def refresh_status(record: ReviewedRecord) -> ReviewedRecord:
             f.status = "uncertain"
         else:
             f.status = "extracted"
+            # Confident (>= 80 %) AI values with evidence are accepted automatically; staff only check the rest
+            if f.source == "ai" and f.review == "pending":
+                f.review = "accepted"
     return record
 
 
@@ -223,7 +227,7 @@ def read_text(data: bytes, content_type: str) -> str:
     """Plain text of the document: OCR for PDFs and images, direct reading for DOCX and TXT."""
     if content_type == "application/pdf" or content_type in IMAGE_TYPES:
         try:
-            text = ai.ocr(data, content_type)
+            text = engine.ocr(data, content_type)
         except ai.AIError as exc:
             raise ExtractionError(str(exc)) from exc
     else:

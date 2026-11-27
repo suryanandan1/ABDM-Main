@@ -32,9 +32,11 @@ React app (`frontend/`).
 Streamlit (streamlit_app/) ┐
 React + MUI (frontend/)    ┴─/api──▶  FastAPI (backend/app)
                                      ├─ routers/        hospital, staff, patients, clinical, lab, documents, fhir, assistant
-                                     ├─ ocr_parser.py   rules: OCR text → separate review fields (no AI)
-                                     ├─ extraction.py   document extraction (review schema)         ┐ ai.py → OCR.space (OCR)
-                                     │                                                              │       + Mistral (optional)
+                                     ├─ ocr/            everything OCR:
+                                     │   ├─ engine.py      OCR.space (or Mistral OCR) → document text
+                                     │   ├─ parser.py      rules: OCR text → separate review fields (no AI)
+                                     │   └─ extraction.py  document extraction (review schema)     ┐ ai.py → Mistral (optional)
+                                     │                                                              │
                                      ├─ assistant.py    read-only record assistant                  ┘ suggestions only
                                      ├─ fhir.py         FHIR: records → engine input → engine (pure mapping) →
                                      │                  local pre-checks + HL7 validator (Java, tools/)
@@ -136,7 +138,7 @@ flowchart TB
 
     subgraph Backend["FastAPI backend (backend/app)"]
         CORE["routers/<br/>hospital · staff · patients<br/>consultations · prescriptions · lab · audit"]
-        SMART["extraction.py · assistant.py<br/>AI (suggestions only)"]
+        SMART["ocr/extraction.py · assistant.py<br/>AI (suggestions only)"]
         FHIR["fhir.py (sources → engine → validation)<br/>FHIR bundles + validation"]
         ABDMM["hip.py (share) · hiu.py (receive)<br/>gateway client · encryption · sealing"]
     end
@@ -292,7 +294,7 @@ flowchart TD
     UP["Upload PDF / scan / image / DOCX / TXT"] --> CHK["Checks: extension allow-list,<br/>magic bytes, size limit, random file name"]
     CHK --> READ["Read the text: OCR.space for PDF/images<br/>(Mistral OCR if no OCR.space key),<br/>direct text for DOCX/TXT"]
     READ --> KEY{"MISTRAL_API_KEY set?"}
-    KEY -- no --> RULES["ocr_parser.py rules split the text into fields:<br/>patient, doctor, visit, diagnoses, vitals,<br/>medicines, lab results, notes"]
+    KEY -- no --> RULES["ocr/parser.py rules split the text into fields:<br/>patient, doctor, visit, diagnoses, vitals,<br/>medicines, lab results, notes"]
     KEY -- yes --> EX["Mistral extraction into the same review schema"]
     RULES & EX --> REV["Review screen: original + OCR text beside fields<br/>value + confidence + evidence per field;<br/>staff accept / edit / reject flagged ones"]
     REV --> LNK["Link patient + responsible doctor"]

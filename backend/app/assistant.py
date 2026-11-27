@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import ai, hiu
-from app.extraction import ReviewedRecord, value
+from app.ocr.extraction import ReviewedRecord, value
 from app.hiu import enforce_retention
 from app.models import ClinicalDocument, Encounter, LabOrder, Patient, Prescription, RetrievedRecord, User
 from app.security import permissions_for

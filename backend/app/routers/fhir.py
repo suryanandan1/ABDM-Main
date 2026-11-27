@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session
 from app import fhir
 from app.config import settings
 from app.database import get_db
-from app.extraction import ReviewedRecord, value
+from app.ocr.extraction import ReviewedRecord, value
 from app.fhir import ICD10, VITAL_SIGNS, ClinicalContent
 from app.models import ClinicalDocument, Encounter, FhirRecord, LabOrder, Prescription, User, utcnow
 from app.schemas import FhirGenerate, FhirRecordOut, FhirRecordSummary, Page
